@@ -17,12 +17,12 @@ server.use(express.json());
 server.post('/api/users', (req, res) => {
     const userInfo = req.body;  // define what the data will be called
     userInfo.id = shortid.generate();   // generate a unique id for each new entry
-        if (!users) { // check for error? 
+        if (!userInfo) { // check for error? 
             res.status(500).json({ errorMessage: "There was an error while saving the user to the database" }) 
         } else if ((req.body.bio === "" || req.body.bio === undefined) ||
         (req.body.name === "" || req.body.name === undefined)) { // check for empty inputs
             res.status(400).json({ errorMessage: "Please provide name and bio for the user" }) 
-        } else       
+        } else 
             users.push(userInfo);    // push the data onto the users array
             res.status(201).json(users);  // status code to signify creation
 });
@@ -31,15 +31,19 @@ server.post('/api/users', (req, res) => {
 server.get('/api/users', (req, res) => {
     if (!users) {
         res.status(500).json({ errorMessage: "The users information could not be retrieved." })
-    } else res.status(200).json(users);
+    } else res.status(200).json(users)
 });
 
 //  GET request to get the user by their ID
 server.get('/api/users/:id', (req, res) => {
-    const userId = users.filter(user => user.id === req.params.id ? user : res.status(404).json({ message: "The user with the specified ID does not exist" }))
-
-    res.status(200).json(userId);
-});
+    if (!users) {
+        res.status(500).json({ errorMessage: "The user information could not be retrieved." })
+    } else if (!req.params.id) {
+        res.status(404).json({ message: "The user with the specified ID does not exist." })
+    } 
+    
+    users.filter(user => user.id === req.params.id && res.status(200).json(user))
+})
 
 //  DELETE request to remove the user by their ID and return the deleted user
 //      /api/users/:id
